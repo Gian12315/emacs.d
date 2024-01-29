@@ -4,7 +4,19 @@
 #+STARTUP: showeverything
 #+OPTIONS: toc:2
 
-* TABLE OF CONTENTS :toc:
+Consider git-timemachine
+- Git-Timemachine
+- hl-todo
+- Bind perspective map to general prefix
+- Rainbow Mode
+- Rainbow delimiters?
+- Tldr?
+  
+Continue reading that dude confs (the one who is a philosopher)
+
+* TABLE OF CONTENTS                                                      :toc:
+- [[#initel][INIT.EL]]
+  - [[#the-early-initel-macro-to-run-code-only-in-a-desktop-environment][The =early-init.el= macro to run code only in a Desktop Environment]]
 - [[#important-programs-to-load-first][IMPORTANT PROGRAMS TO LOAD FIRST]]
   - [[#elpaca-package-manager][Elpaca Package Manager]]
   - [[#general-keybindings][General Keybindings]]
@@ -39,22 +51,41 @@
 - [[#templates][TEMPLATES]]
 - [[#treemacs][TREEMACS]]
 - [[#themes][THEMES]]
-  - [[#catppuccin][Catppuccin]]
   - [[#selected-theme][Selected Theme]]
 - [[#org-mode][ORG MODE]]
   - [[#enabling-table-of-contents][Enabling Table of Contents]]
   - [[#enabling-org-bullets][Enabling Org Bullets]]
+  - [[#org-download][Org Download]]
+  - [[#meow-and-org-mode-bindings][Meow and Org Mode bindings]]
+- [[#spacious-padding][SPACIOUS PADDING]]
 - [[#projectel][PROJECT.EL]]
 - [[#puni][PUNI]]
 - [[#recentf-mode][RECENTF-MODE]]
 - [[#sudo-edit][SUDO EDIT]]
-- [[#smartparens][SMARTPARENS]]
-- [[#undo-tree][UNDO TREE]]
 - [[#vundo][VUNDO]]
 - [[#which-key][WHICH-KEY]]
 - [[#wgrep][WGREP]]
 - [[#programming-languages][PROGRAMMING LANGUAGES]]
   - [[#common-lisp][Common Lisp]]
+  - [[#php][PHP]]
+
+* INIT.EL
+The following code blocks will tangle to the =early-init.el= file, which has configuration that will be rendered before the frame renders
+
+** The =early-init.el= macro to run code only in a Desktop Environment
+
+#+begin_src emacs-lisp :tangle "early-init.el"
+  (defvar gian/tiling-window-manager-regexp
+    "Regular expresion to tiling window managers that I might use."
+    (regexp-opt '("stumpwm")))
+
+  (defmacro gian/with-desktop-session (&rest body)
+    (declare (indent 0))
+    `(when-let ((session (getenv "DESKTOP_SESSION"))
+                ((not (string-match-p session gian/tiling-window-manager-regexp))))
+       ,@body))
+#+end_src
+      
 
 * IMPORTANT PROGRAMS TO LOAD FIRST
 ** Elpaca Package Manager
@@ -162,7 +193,7 @@
     "w s" '(split-window-below :wk "Horizontal split window")
     "w v" '(split-window-right :wk "Vertical split window")
     ;; Window motions
-    "w p" '(ace-window :wk "Change window")
+    "w o" '(ace-window :wk "Change window")
     ;; Move Windows
     "w h" '(buf-move-left :wk "Buffer move left")
     "w j" '(buf-move-down :wk "Buffer move down")
@@ -175,99 +206,99 @@
 
 ** Meow
 #+begin_src emacs-lisp
-    (defun meow-setup ()
-      (setq meow-cheatsheet-layout meow-cheatsheet-layout-qwerty)
-      (meow-motion-overwrite-define-key
-       '("j" . meow-next)
-       '("k" . meow-prev)
-       '("<escape>" . ignore))
-      (meow-leader-define-key
-       ;; SPC j/k will run the original command in MOTION state.
-       '("j" . "H-j")
-       '("k" . "H-k")
-       ;; Use SPC (0-9) for digit arguments.
-       '("1" . meow-digit-argument)
-       '("2" . meow-digit-argument)
-       '("3" . meow-digit-argument)
-       '("4" . meow-digit-argument)
-       '("5" . meow-digit-argument)
-       '("6" . meow-digit-argument)
-       '("7" . meow-digit-argument)
-       '("8" . meow-digit-argument)
-       '("9" . meow-digit-argument)
-       '("0" . meow-digit-argument)
-       '("/" . meow-keypad-describe-key)
-       '("?" . meow-cheatsheet))
-      (meow-normal-define-key
-       '("0" . meow-expand-0)
-       '("9" . meow-expand-9)
-       '("8" . meow-expand-8)
-       '("7" . meow-expand-7)
-       '("6" . meow-expand-6)
-       '("5" . meow-expand-5)
-       '("4" . meow-expand-4)
-       '("3" . meow-expand-3)
-       '("2" . meow-expand-2)
-       '("1" . meow-expand-1)
-       '("-" . negative-argument)
-       '(";" . meow-reverse)
-       '("," . meow-inner-of-thing)
-       '("." . meow-bounds-of-thing)
-       '("[" . meow-beginning-of-thing)
-       '("]" . meow-end-of-thing)
-       '("a" . meow-append)
-       '("A" . meow-open-below)
-       '("b" . meow-back-word)
-       '("B" . meow-back-symbol)
-       '("c" . meow-change)
-       '("d" . meow-delete)
-       '("D" . meow-backward-delete)
-       '("e" . meow-next-word)
-       '("E" . meow-next-symbol)
-       '("f" . meow-find)
-       '("g" . meow-cancel-selection)
-       '("G" . meow-grab)
-       '("h" . meow-left)
-       '("H" . meow-left-expand)
-       '("i" . meow-insert)
-       '("I" . meow-open-above)
-       '("j" . meow-next)
-       '("J" . meow-next-expand)
-       '("k" . meow-prev)
-       '("K" . meow-prev-expand)
-       '("l" . meow-right)
-       '("L" . meow-right-expand)
-       '("m" . meow-join)
-       '("n" . meow-search)
-       '("o" . meow-block)
-       '("O" . meow-to-block)
-       '("p" . meow-yank)
-       '("q" . meow-quit)
-       '("Q" . meow-goto-line)
-       '("r" . meow-replace)
-       '("R" . meow-swap-grab)
-       '("s" . meow-kill)
-       '("t" . meow-till)
-       '("u" . meow-undo)
-       '("U" . meow-undo-in-selection)
-       '("v" . meow-visit)
-       '("w" . meow-mark-word)
-       '("W" . meow-mark-symbol)
-       '("x" . meow-line)
-       '("X" . meow-goto-line)
-       '("y" . meow-save)
-       '("Y" . meow-sync-grab)
-       '("z" . meow-pop-selection)
-       '("'" . repeat)
-       '("<escape>" . ignore))
+  (defun meow-setup ()
+    (setq meow-cheatsheet-layout meow-cheatsheet-layout-qwerty)
+    (meow-motion-overwrite-define-key
+     '("j" . meow-next)
+     '("k" . meow-prev)
+     '("<escape>" . ignore))
+    (meow-leader-define-key
+     ;; SPC j/k will run the original command in MOTION state.
+     '("j" . "H-j")
+     '("k" . "H-k")
+     ;; Use SPC (0-9) for digit arguments.
+     '("1" . meow-digit-argument)
+     '("2" . meow-digit-argument)
+     '("3" . meow-digit-argument)
+     '("4" . meow-digit-argument)
+     '("5" . meow-digit-argument)
+     '("6" . meow-digit-argument)
+     '("7" . meow-digit-argument)
+     '("8" . meow-digit-argument)
+     '("9" . meow-digit-argument)
+     '("0" . meow-digit-argument)
+     '("/" . meow-keypad-describe-key)
+     '("?" . meow-cheatsheet))
+    (meow-normal-define-key
+     '("0" . meow-expand-0)
+     '("9" . meow-expand-9)
+     '("8" . meow-expand-8)
+     '("7" . meow-expand-7)
+     '("6" . meow-expand-6)
+     '("5" . meow-expand-5)
+     '("4" . meow-expand-4)
+     '("3" . meow-expand-3)
+     '("2" . meow-expand-2)
+     '("1" . meow-expand-1)
+     '("-" . negative-argument)
+     '(";" . meow-reverse)
+     '("," . meow-inner-of-thing)
+     '("." . meow-bounds-of-thing)
+     '("[" . meow-beginning-of-thing)
+     '("]" . meow-end-of-thing)
+     '("a" . meow-append)
+     '("A" . meow-open-below)
+     '("b" . meow-back-word)
+     '("B" . meow-back-symbol)
+     '("c" . meow-change)
+     '("d" . meow-delete)
+     '("D" . meow-backward-delete)
+     '("e" . meow-next-word)
+     '("E" . meow-next-symbol)
+     '("f" . meow-find)
+     '("g" . meow-cancel-selection)
+     '("G" . meow-grab)
+     '("h" . meow-left)
+     '("H" . meow-left-expand)
+     '("i" . meow-insert)
+     '("I" . meow-open-above)
+     '("j" . meow-next)
+     '("J" . meow-next-expand)
+     '("k" . meow-prev)
+     '("K" . meow-prev-expand)
+     '("l" . meow-right)
+     '("L" . meow-right-expand)
+     '("m" . meow-join)
+     '("n" . meow-search)
+     '("o" . meow-block)
+     '("O" . meow-to-block)
+     '("p" . meow-yank)
+     '("q" . meow-quit)
+     '("Q" . meow-goto-line)
+     '("r" . meow-replace)
+     '("R" . meow-swap-grab)
+     '("s" . meow-kill)
+     '("t" . meow-till)
+     '("u" . meow-undo)
+     '("U" . meow-undo-in-selection)
+     '("v" . meow-visit)
+     '("w" . meow-mark-word)
+     '("W" . meow-mark-symbol)
+     '("x" . meow-line)
+     '("X" . meow-goto-line)
+     '("y" . meow-save)
+     '("Y" . meow-sync-grab)
+     '("z" . meow-pop-selection)
+     '("'" . repeat)
+     '("<escape>" . ignore))
 
-      (meow-define-keys
-          'insert '("C-g" . meow-insert-exit)))
+    (meow-define-keys
+        'insert '("C-g" . meow-insert-exit)))
 
-    (use-package meow
-     :config
-     (meow-setup)
-     (meow-global-mode 1))
+  (use-package meow
+   :config
+   (meow-setup)
+   (meow-global-mode 1))
 #+end_src
 
 ** Load Evil Mode
@@ -581,6 +612,7 @@
 
   ;; Consult users will also want the embark-consult package.
   (use-package embark-consult
+    :after (embark consult)
     :ghook ('embark-collect-mode-hook  #'consult-preview-at-point-mode))
 
 #+end_src
@@ -600,10 +632,21 @@
     ;; (corfu-on-exact-match nil)     ;; Configure handling of exact matches'
     ;; (corfu-scroll-margin 5)        ;; Use scroll margin
 
-    ;; Use TAB for cycling, default is `corfu-complete'.
     :general
-    (:keymaps 'corfu-map "RET" nil)
-    (:keymaps 'corfu-map "C-d" 'corfu-insert-separator)
+    (:keymaps 'corfu-map
+              "RET" nil
+              ;; Meow interacts badly with this, if we ever go to normal mode from
+              ;; being in insert and in a corfu completion, and we move either up
+              ;; or down, we enter into the completion ui, this is unintended
+              ;; we then unbind next line and previous line, and manually
+              ;; bind C-n and C-p
+              [remap next-line] nil
+              "C-n" 'corfu-next
+              ;; "<up>" nil
+              [remap previous-line] nil
+              "C-p" 'corfu-previous
+              ;; "<down>" nil
+              "C-d" 'corfu-insert-separator)
     ;; (:keymaps 'corfu-map
               ;; "TAB" 'corfu-next
               ;; "[tab]" 'corfu-next
@@ -668,8 +711,7 @@
                       #'pcomplete-completions-at-point
                       #'tempel-complete)
                     cape-file
-                    cape-dabbrev)
-                  cape-dabbrev-min-length 5))
+                    cape-dict)))
 
     (defun gian/ignore-elisp-keywords (cand)
       (or (not (keywordp cand))
@@ -764,17 +806,17 @@ Defining the various fonts that Emacs will use.
   :elpaca nil
   :init
   (set-face-attribute 'default nil
-    :font "SourceCodePro"
+    :font "Iosevka"
     :height 110
     :weight 'medium) 
 
   (set-face-attribute 'variable-pitch nil
-    :font "SourceSansPro"
+    :font "IosevkaAile"
     :height 120
     :weight 'medium) 
 
   (set-face-attribute 'fixed-pitch nil
-    :font "SourceCodePro"
+    :font "Iosevka"
     :height 110
     :weight 'medium) 
 
@@ -785,7 +827,7 @@ Defining the various fonts that Emacs will use.
     :slant 'italic)
 
   ;; Default font for graphical frames
-  (add-to-list 'default-frame-alist '(font . "SourceCodePro-11")))
+  (add-to-list 'default-frame-alist '(font . "Iosevka-11")))
 
 #+end_src
 
@@ -840,24 +882,13 @@ This requires you to either have the `Symols Nerd Font' font installed, or any N
 #+begin_src emacs-lisp
   (use-package perspective
     :after consult
-  
-    :ghook
-    ;; ('window-setup-hook (lambda () (persp-mode 1)))
-    ;; ('kill-emacs-hook #'persp-state-save)
-         ;; NOTE: We use Perspective, we must customize this somewhere
-
-
     :custom
     (persp-mode-prefix-key (kbd "C-c M-p"))
     :init
     (persp-mode)
     :config
-    ;;(setq wg-morph-on nil)
-    ;;(setq persp-autokill-buffer-on-remove 'kill-weak)
     (consult-customize consult--source-buffer :hidden t :default nil)
-    (add-to-list 'consult-buffer-sources persp-consult-source)
-
-    )
+    (add-to-list 'consult-buffer-sources persp-consult-source))
   #+end_src
 
 
@@ -967,7 +998,7 @@ The best interface
       (treemacs-hide-gitignored-files-mode nil))
     :general
     (gian/leader-keys
-      "t n"    'treemacs))
+      "t n"    'treemacs-select-window))
 
   (use-package treemacs-icons-dired
     :hook (dired-mode . treemacs-icons-dired-enable-once)
@@ -983,21 +1014,20 @@ The best interface
     :config (treemacs-set-scope-type 'Perspectives))
 #+end_src
 
-* THEMES
-** Catppuccin
-#+begin_src emacs-lisp
-    (use-package catppuccin-theme
-  :init (setq catppuccin-flavor 'mocha)
-  )
 
-  (elpaca-wait)
-#+end_src
+
+* THEMES
 ** Selected Theme
+I'm using modus-themes, which come builtin with Emacs.
 #+begin_src emacs-lisp
   (use-package emacs
    :elpaca nil
+   :general
+   ( "<f5>" 'modus-themes-toggle)
    :config
-   (load-theme 'catppuccin :no-confirm)
+   (setq modus-themes-italic-constructs t
+         modus-themes-bold-constructs t)
+   (load-theme 'modus-vivendi :no-confirm)
     )
 #+end_src
 
@@ -1017,17 +1047,73 @@ The best interface
     :config (global-org-modern-mode))
 #+end_src
 
-
-* PROJECT.EL
+** Org Download
 #+begin_src emacs-lisp
-    (use-package emacs :elpaca nil
-      :after project
-      :config
-      (add-to-list 'project-find-functions (lambda (DIR) (locate-dominating-file DIR "*.asd"))))
+  (use-package org-download)
 #+end_src
 
-#+RESULTS:
-: t
+** Meow and Org Mode bindings
+#+begin_src emacs-lisp
+  (use-package org
+    :elpaca nil
+    :general
+    (:keymaps 'org-mode-map :predicate 'meow-mode-major-mode
+              ;; <up>
+              "C-S-k" 'org-shiftcontrolup
+              "S-k" 'org-shiftup
+              "M-S-k" 'org-shiftmetaup
+              "M-k" 'org-metaup
+              "ESC S-k" 'org-shiftmetaup
+              "ESC k" 'org-metaup
+              ;; <down>
+              "C-S-j" 'org-shiftcontroldown
+              "S-j" 'org-shiftdown
+              "M-S-j" 'org-shiftmetadown
+              "M-j" 'org-metadown
+              "ESC S-j" 'org-shiftmetadown
+              "ESC j" 'org-metadown
+              ;; <left>
+              "C-S-h" 'org-shiftcontrolleft
+              "S-h" 'org-shiftleft
+              "M-S-h" 'org-shiftmetaleft
+              "M-h" 'org-metaleft
+              "ESC S-h" 'org-shiftmetaleft
+              "ESC h" 'org-metaleft
+              "C-M-S-h" 'org-decrease-number-at-point
+              ;; <right>
+              "C-S-l" 'org-shiftcontrolright
+              "S-l" 'org-shiftright
+              "M-S-l" 'org-shiftmetaright
+              "M-l" 'org-metaright
+              "ESC S-l" 'org-shiftmetaright
+              "ESC l" 'org-metaright
+              "C-M-S-l" 'org-increase-number-at-point))
+#+end_src
+
+* SPACIOUS PADDING
+#+begin_src emacs-lisp
+  (use-package spacious-padding
+    :general ( "<f8>" 'spacious-padding-mode)
+    :ghook ('window-setup-hook 'spacious-padding-mode)
+    :config
+    ;; These is the default value, but I keep it here for visiibility.
+    (setq spacious-padding-widths
+          '( :internal-border-width 15
+             :header-line-width 4
+             :mode-line-width 6
+             :tab-width 4
+             :right-divider-width 30
+             :scroll-bar-width 8))
+    ;; Read the doc string of `spacious-padding-subtle-mode-line' as it
+    ;; is very flexible and provides several examples.
+    (setq spacious-padding-subtle-mode-line
+          `( :mode-line-active 'default
+             :mode-line-inactive vertical-border))
+    )
+  #+end_src
+
+* PROJECT.EL
+TODO: Read documentatio
 
 * PUNI
 If Puni exists, also create a new mode for Meow
@@ -1044,7 +1130,7 @@ If Puni exists, also create a new mode for Meow
     (setq meow-cursor-type-paren 'hollow)
 
     ;; Key to enter paren mode
-  
+
     (meow-define-keys 'paren
       '("<escape>" . meow-normal-mode)
       ;; Movement
@@ -1059,7 +1145,7 @@ If Puni exists, also create a new mode for Meow
       '("c" . puni-slurp-backward)
       '("u" . meow-undo)
       )
-
+    
     (puni-global-mode)
   :general ('term-mode-hook #'puni-disable-puni-mode))
 #+end_src
@@ -1078,27 +1164,6 @@ If Puni exists, also create a new mode for Meow
     (gian/leader-keys
       "f u" '(sudo-edit-find-file :wk "Sudo find file")
       "f U" '(sudo-edit :wk "Sudo edit file")))
-#+end_src
-
-* SMARTPARENS
-#+begin_src emacs-lisp
-  ;; (use-package smartparens
-    ;; :ghook ('(prog-mode-hook text-mode-hook markdown-mode-hook)) ;; add `smartparens-mode` to these hooks
-    ;; :config
-    ;; load default config
-    ;; (require 'smartparens-config))
-#+end_src
-
-* UNDO TREE
-#+begin_src emacs-lisp
-  ;;(use-package undo-tree
-  ;;:general
-  ;;(:keymaps 'meow-motion-state-keymap
-   ;;:predicate '(bound-and-true-p undo-tree-mode)
-  ;;"l" 'undo-tree-visualize-switch-branch-right
-  ;;"h" 'undo-tree-visualizer-switch-branch-left)
-  ;;:config
-  ;;(global-undo-tree-mode))
 #+end_src
 
 * VUNDO
@@ -1163,3 +1228,7 @@ Developing common-lisp with Sly
       (sly-eval-async '(ql:quickload :lisp-critic))
       (sly-eval-async `(lisp-critic:critique-file ,(buffer-file-name)))))
  #+end_src
+** PHP
+#+begin_src emacs-lisp
+  (use-package php-mode)
+#+end_src
