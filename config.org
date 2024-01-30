@@ -1092,6 +1092,7 @@ I'm using modus-themes, which come builtin with Emacs.
 #+end_src
 
 * ORG CUSTOM CONFIG
+TODO: Setup file sync with Dropbox or anything else.
 #+begin_src emacs-lisp
   (setq org-default-notes-file (concat org-directory "/notes.org"))
   (setq org-capture-templates
