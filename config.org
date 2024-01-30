@@ -71,6 +71,8 @@ Continue reading that dude confs (the one who is a philosopher)
   - [[#php][PHP]]
 
 * INIT.EL
+INFO: Currently this doesn't do anything. It's not even tangled.
+
 The following code blocks will tangle to the =early-init.el= file, which has configuration that will be rendered before the frame renders
 
 ** The =early-init.el= macro to run code only in a Desktop Environment
