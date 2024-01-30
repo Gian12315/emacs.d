@@ -57,6 +57,7 @@ Continue reading that dude confs (the one who is a philosopher)
   - [[#enabling-org-bullets][Enabling Org Bullets]]
   - [[#org-download][Org Download]]
   - [[#meow-and-org-mode-bindings][Meow and Org Mode bindings]]
+- [[#org-custom-config][ORG CUSTOM CONFIG]]
 - [[#spacious-padding][SPACIOUS PADDING]]
 - [[#projectel][PROJECT.EL]]
 - [[#puni][PUNI]]
@@ -1088,6 +1089,15 @@ I'm using modus-themes, which come builtin with Emacs.
               "ESC S-l" 'org-shiftmetaright
               "ESC l" 'org-metaright
               "C-M-S-l" 'org-increase-number-at-point))
+#+end_src
+
+* ORG CUSTOM CONFIG
+#+begin_src emacs-lisp
+  (setq org-default-notes-file (concat org-directory "/notes.org"))
+  (setq org-capture-templates
+        '(("t" "Tarea" entry
+           (file org-default-notes-file)
+           "* %?")))
 #+end_src
 
 * SPACIOUS PADDING
