@@ -58,6 +58,8 @@ Continue reading that dude confs (the one who is a philosopher)
   - [[#org-download][Org Download]]
   - [[#meow-and-org-mode-bindings][Meow and Org Mode bindings]]
 - [[#org-custom-config][ORG CUSTOM CONFIG]]
+- [[#org-babel][ORG BABEL]]
+  - [[#setup-common-lisp][Setup Common Lisp]]
 - [[#spacious-padding][SPACIOUS PADDING]]
 - [[#projectel][PROJECT.EL]]
 - [[#puni][PUNI]]
@@ -1099,6 +1101,12 @@ TODO: Setup file sync with Dropbox or anything else.
         '(("t" "Tarea" entry
            (file org-default-notes-file)
            "* %?")))
+#+end_src
+
+* ORG BABEL
+** Setup Common Lisp
+#+begin_src emacs-lisp
+  (setq org-babel-lisp-eval-fn 'sly-eval)
 #+end_src
 
 * SPACIOUS PADDING
