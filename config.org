@@ -56,8 +56,12 @@ Continue reading that dude confs (the one who is a philosopher)
   - [[#enabling-table-of-contents][Enabling Table of Contents]]
   - [[#enabling-org-bullets][Enabling Org Bullets]]
   - [[#org-download][Org Download]]
+  - [[#citar][CITAR]]
   - [[#meow-and-org-mode-bindings][Meow and Org Mode bindings]]
+- [[#plant-uml][PLANT UML]]
 - [[#org-custom-config][ORG CUSTOM CONFIG]]
+- [[#org-babel][ORG BABEL]]
+  - [[#setup-common-lisp][Setup Common Lisp]]
 - [[#spacious-padding][SPACIOUS PADDING]]
 - [[#projectel][PROJECT.EL]]
 - [[#puni][PUNI]]
@@ -700,42 +704,43 @@ The following code blocks will tangle to the =early-init.el= file, which has con
 
 * CAPE
 #+begin_src emacs-lisp
-  ;; Add extensions
-  (use-package cape
-    :ghook
-    ('org-mode-hook #'gian/capf-setup-org)
-    ('emacs-lisp-mode-hook #'gian/capf-setup-elisp)
-    ('sly-mode-hook #'gian/capf-setup-common-lisp)
-    :init
+    ;; Add extensions
+    (use-package cape
+      :ghook
+      ('org-mode-hook #'gian/capf-setup-org)
+      ('emacs-lisp-mode-hook #'gian/capf-setup-elisp)
+      ('sly-mode-hook #'gian/capf-setup-common-lisp)
+      :init
 
-    (defun gian/capf-setup-org ()
-      (setq-local completion-at-point-functions
-                  `(,(cape-capf-super
-                      #'pcomplete-completions-at-point
-                      #'tempel-complete)
-                    cape-file
-                    cape-dict)))
+      (defun gian/capf-setup-org ()
+        (setq-local completion-at-point-functions
+                    `(,(cape-capf-super
+                        #'pcomplete-completions-at-point
+                        #'tempel-complete)
+                      cape-file
+                      citar-capf
+                      cape-dict)))
 
-    (defun gian/ignore-elisp-keywords (cand)
-      (or (not (keywordp cand))
-          (eq (char-after (car completion-in-region--data)) ?:)))
+      (defun gian/ignore-elisp-keywords (cand)
+        (or (not (keywordp cand))
+            (eq (char-after (car completion-in-region--data)) ?:)))
 
-    (defun gian/capf-setup-elisp ()
-      (setq-local completion-at-point-functions
-                  `(,(cape-capf-super
-                      (cape-capf-predicate
-                       #'elisp-completion-at-point
-                       #'gian/ignore-elisp-keywords)
-                      #'tempel-complete
-                      #'cape-dabbrev)
-                    cape-file
-                    )
-                  cape-dabbrev-min-length 5))
+      (defun gian/capf-setup-elisp ()
+        (setq-local completion-at-point-functions
+                    `(,(cape-capf-super
+                        (cape-capf-predicate
+                         #'elisp-completion-at-point
+                         #'gian/ignore-elisp-keywords)
+                        #'tempel-complete
+                        #'cape-dabbrev)
+                      cape-file
+                      )
+                    cape-dabbrev-min-length 5))
 
-    (defun gian/capf-setup-common-lisp ()
-      (setq-local completion-at-point-functions '(cape-file tempel-complete sly-complete-symbol)))
+      (defun gian/capf-setup-common-lisp ()
+        (setq-local completion-at-point-functions '(cape-file tempel-complete sly-complete-symbol)))
 
-    )
+      )
 #+end_src
 
 
@@ -1055,6 +1060,28 @@ I'm using modus-themes, which come builtin with Emacs.
   (use-package org-download)
 #+end_src
 
+** CITAR
+#+begin_src emacs-lisp
+  (use-package citar
+    :ghook ('org-mode-hook 'citar-capf-setup)
+    :custom
+    (citar-bibliography '("~/bib/references.bib"))
+    (org-cite-global-bibliography '("~/bib/references.bib"))
+    (org-cite-processor-insert 'citar)
+    (org-cite-processor-follow 'citar)
+    (org-cite-processor-activate 'citar))
+
+  (use-package citar-embark
+    :after citar embark
+    :no-require
+    :config (citar-embark-mode))
+#+end_src
+
+*** Bibliograpy TODO: Move somewhere else
+Corroborate if the error is something or if it's just noice when #+Printbiblio
+#+begin_src emacs-lisp
+#+end_src
+
 ** Meow and Org Mode bindings
 #+begin_src emacs-lisp
   (use-package org
@@ -1093,6 +1120,18 @@ I'm using modus-themes, which come builtin with Emacs.
               "C-M-S-l" 'org-increase-number-at-point))
 #+end_src
 
+* PLANT UML
+Integrate PlantUML with Org Mode
+#+begin_src emacs-lisp
+  (use-package plantuml-mode
+    :config
+    (setq org-plantuml-jar-path "/usr/share/java/plantuml.jar")
+    (add-to-list 'org-src-lang-modes '("plantuml" . plantuml))
+    (org-babel-do-load-languages 'org-babel-load-languages '((plantuml . t)))
+
+    )
+#+end_src
+
 * ORG CUSTOM CONFIG
 TODO: Setup file sync with Dropbox or anything else.
 #+begin_src emacs-lisp
@@ -1101,6 +1140,13 @@ TODO: Setup file sync with Dropbox or anything else.
         '(("t" "Tarea" entry
            (file org-default-notes-file)
            "* %?")))
+#+end_src
+
+* ORG BABEL
+
+** Setup Common Lisp
+#+begin_src emacs-lisp
+  (setq org-babel-lisp-eval-fn 'sly-eval)
 #+end_src
 
 * SPACIOUS PADDING
