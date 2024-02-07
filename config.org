@@ -70,6 +70,7 @@ Continue reading that dude confs (the one who is a philosopher)
 - [[#wgrep][WGREP]]
 - [[#programming-languages][PROGRAMMING LANGUAGES]]
   - [[#common-lisp][Common Lisp]]
+  - [[#java][Java]]
   - [[#php][PHP]]
 
 * INIT.EL
@@ -1247,6 +1248,11 @@ Developing common-lisp with Sly
       (sly-eval-async '(ql:quickload :lisp-critic))
       (sly-eval-async `(lisp-critic:critique-file ,(buffer-file-name)))))
  #+end_src
+** Java
+#+begin_src emacs-lisp
+  (use-package lsp-java
+    :ghook ('java-mode-hook #'lsp))
+#+end_src
 ** PHP
 #+begin_src emacs-lisp
   (use-package php-mode)
