@@ -1,4 +1,4 @@
-#+TITLE:Gian12315 GNU Emacs Config
++TITLE:Gian12315 GNU Emacs Config
 #+AUTHOR: Giancarlo Espitia Ramirez (Gian12315)
 #+DESCRIPTION: Gian's personal Emacs config.
 #+STARTUP: showeverything
@@ -54,12 +54,13 @@ Continue reading that dude confs (the one who is a philosopher)
   - [[#selected-theme][Selected Theme]]
 - [[#org-mode][ORG MODE]]
   - [[#enabling-table-of-contents][Enabling Table of Contents]]
-  - [[#enabling-org-bullets][Enabling Org Bullets]]
+  - [[#org-modern][Org Modern]]
   - [[#org-download][Org Download]]
   - [[#citar][CITAR]]
   - [[#meow-and-org-mode-bindings][Meow and Org Mode bindings]]
 - [[#plant-uml][PLANT UML]]
 - [[#org-custom-config][ORG CUSTOM CONFIG]]
+- [[#org-latex][ORG LATEX]]
 - [[#org-babel][ORG BABEL]]
   - [[#setup-common-lisp][Setup Common Lisp]]
 - [[#spacious-padding][SPACIOUS PADDING]]
@@ -1047,7 +1048,7 @@ I'm using modus-themes, which come builtin with Emacs.
 	:init (add-hook 'org-mode-hook 'toc-org-enable))
 #+end_src
 
-** Enabling Org Bullets
+** Org Modern
 #+begin_src emacs-lisp
   (add-hook 'org-mode-hook 'org-indent-mode)
   (use-package org-modern
@@ -1075,11 +1076,6 @@ I'm using modus-themes, which come builtin with Emacs.
     :after citar embark
     :no-require
     :config (citar-embark-mode))
-#+end_src
-
-*** Bibliograpy TODO: Move somewhere else
-Corroborate if the error is something or if it's just noice when #+Printbiblio
-#+begin_src emacs-lisp
 #+end_src
 
 ** Meow and Org Mode bindings
@@ -1140,6 +1136,16 @@ TODO: Setup file sync with Dropbox or anything else.
         '(("t" "Tarea" entry
            (file org-default-notes-file)
            "* %?")))
+#+end_src
+
+* ORG LATEX
+#+begin_src emacs-lisp
+  (use-package org
+    :elpaca nil
+    :init
+    (add-to-list 'org-latex-packages-alist
+             '("AUTO" "babel" t ("pdflatex" "xelatex" "lualatex")))
+    )
 #+end_src
 
 * ORG BABEL
