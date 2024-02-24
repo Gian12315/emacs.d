@@ -72,8 +72,12 @@ Continue reading that dude confs (the one who is a philosopher)
 - [[#which-key][WHICH-KEY]]
 - [[#wgrep][WGREP]]
 - [[#programming-languages][PROGRAMMING LANGUAGES]]
+  - [[#clojure][Clojure]]
   - [[#common-lisp][Common Lisp]]
+  - [[#java][Java]]
   - [[#php][PHP]]
+  - [[#haskell][Haskell]]
+  - [[#web][Web]]
 
 * INIT.EL
 INFO: Currently this doesn't do anything. It's not even tangled.
@@ -1139,14 +1143,6 @@ TODO: Setup file sync with Dropbox or anything else.
 #+end_src
 
 * ORG LATEX
-#+begin_src emacs-lisp
-  (use-package org
-    :elpaca nil
-    :init
-    (add-to-list 'org-latex-packages-alist
-             '("AUTO" "babel" t ("pdflatex" "xelatex" "lualatex")))
-    )
-#+end_src
 
 * ORG BABEL
 
@@ -1264,6 +1260,20 @@ wgrep allows you to edit a grep buffer and apply those changes to the file buffe
 #+end_src
 
 * PROGRAMMING LANGUAGES
+First of all, we configure Eglot generally
+
+#+begin_src emacs-lisp
+  (use-package eglot
+    :elpaca nil)
+#+end_src
+
+** Clojure
+Using CIDER, along with Lein
+#+begin_src emacs-lisp
+  (use-package cider
+    )
+#+end_src
+
 ** Common Lisp
 Developing common-lisp with Sly
 #+begin_src emacs-lisp
@@ -1293,7 +1303,33 @@ Developing common-lisp with Sly
       (sly-eval-async '(ql:quickload :lisp-critic))
       (sly-eval-async `(lisp-critic:critique-file ,(buffer-file-name)))))
  #+end_src
+ 
+** Java
+#+begin_src emacs-lisp
+  (use-package eglot
+    :elpaca nil
+    :ghook ('java-mode-hook 'eglot-ensure)
+    :init
+    (add-to-list 'eglot-server-programs
+                 '(java-mode . ("~/.config/emacs/share/eclipse.jdt.ls/bin/jdtls"))))
+
+  (use-package eglot-java)
+#+end_src
 ** PHP
 #+begin_src emacs-lisp
   (use-package php-mode)
+#+end_src
+** Haskell
+#+begin_src emacs-lisp
+  (use-package haskell-mode)
+  (use-package eglot
+    :elpaca nil
+    :ghook ('haskell-mode-hook 'eglot-ensure)
+    :init
+    (add-to-list 'eglot-server-programs
+                 '(haskell-mode . ("haskell-language-server-wrapper" "--lsp"))))
+#+end_src
+** Web
+#+begin_src emacs-lisp
+  (use-package web-mode)
 #+end_src
