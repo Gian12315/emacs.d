@@ -1,4 +1,4 @@
-+TITLE:Gian12315 GNU Emacs Config
+#+TITLE:Gian12315 GNU Emacs Config
 #+AUTHOR: Giancarlo Espitia Ramirez (Gian12315)
 #+DESCRIPTION: Gian's personal Emacs config.
 #+STARTUP: showeverything
@@ -49,6 +49,7 @@ Continue reading that dude confs (the one who is a philosopher)
 - [[#perspective][PERSPECTIVE]]
 - [[#magit][MAGIT]]
 - [[#templates][TEMPLATES]]
+- [[#templates-and-eglot][TEMPLATES AND EGLOT]]
 - [[#treemacs][TREEMACS]]
 - [[#themes][THEMES]]
   - [[#selected-theme][Selected Theme]]
@@ -57,6 +58,7 @@ Continue reading that dude confs (the one who is a philosopher)
   - [[#org-modern][Org Modern]]
   - [[#org-download][Org Download]]
   - [[#citar][CITAR]]
+  - [[#write-emails][Write emails]]
   - [[#meow-and-org-mode-bindings][Meow and Org Mode bindings]]
 - [[#plant-uml][PLANT UML]]
 - [[#org-custom-config][ORG CUSTOM CONFIG]]
@@ -71,11 +73,16 @@ Continue reading that dude confs (the one who is a philosopher)
 - [[#vundo][VUNDO]]
 - [[#which-key][WHICH-KEY]]
 - [[#wgrep][WGREP]]
+- [[#hydra][HYDRA]]
+- [[#http][HTTP]]
 - [[#programming-languages][PROGRAMMING LANGUAGES]]
   - [[#clojure][Clojure]]
   - [[#common-lisp][Common Lisp]]
+  - [[#c][C#]]
   - [[#java][Java]]
+  - [[#javascript][JavaScript]]
   - [[#php][PHP]]
+  - [[#python][Python]]
   - [[#haskell][Haskell]]
   - [[#web][Web]]
 
@@ -103,42 +110,44 @@ The following code blocks will tangle to the =early-init.el= file, which has con
 ** Elpaca Package Manager
 
 #+begin_src emacs-lisp
-    (defvar elpaca-installer-version 0.6)
-    (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
-    (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
-    (defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
-    (defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
-                                  :ref nil
-                                  :files (:defaults "elpaca-test.el" (:exclude "extensions"))
-                                  :build (:not elpaca--activate-package)))
-    (let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
-           (build (expand-file-name "elpaca/" elpaca-builds-directory))
-           (order (cdr elpaca-order))
-           (default-directory repo))
-      (add-to-list 'load-path (if (file-exists-p build) build repo))
-      (unless (file-exists-p repo)
-        (make-directory repo t)
-        (when (< emacs-major-version 28) (require 'subr-x))
-        (condition-case-unless-debug err
-            (if-let ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
-                     ((zerop (call-process "git" nil buffer t "clone"
-                                           (plist-get order :repo) repo)))
-                     ((zerop (call-process "git" nil buffer t "checkout"
-                                           (or (plist-get order :ref) "--"))))
-                     (emacs (concat invocation-directory invocation-name))
-                     ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
-                                           "--eval" "(byte-recompile-directory \".\" 0 'force)")))
-                     ((require 'elpaca))
-                     ((elpaca-generate-autoloads "elpaca" repo)))
-                (progn (message "%s" (buffer-string)) (kill-buffer buffer))
-              (error "%s" (with-current-buffer buffer (buffer-string))))
-          ((error) (warn "%s" err) (delete-directory repo 'recursive))))
-      (unless (require 'elpaca-autoloads nil t)
-        (require 'elpaca)
-        (elpaca-generate-autoloads "elpaca" repo)
-        (load "./elpaca-autoloads")))
-    (add-hook 'after-init-hook #'elpaca-process-queues)
-    (elpaca `(,@elpaca-order))
+  (defvar elpaca-installer-version 0.7)
+  (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
+  (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
+  (defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
+  (defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
+                                :ref nil :depth 1
+                                :files (:defaults "elpaca-test.el" (:exclude "extensions"))
+                                :build (:not elpaca--activate-package)))
+  (let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
+         (build (expand-file-name "elpaca/" elpaca-builds-directory))
+         (order (cdr elpaca-order))
+         (default-directory repo))
+    (add-to-list 'load-path (if (file-exists-p build) build repo))
+    (unless (file-exists-p repo)
+      (make-directory repo t)
+      (when (< emacs-major-version 28) (require 'subr-x))
+      (condition-case-unless-debug err
+          (if-let ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
+                   ((zerop (apply #'call-process `("git" nil ,buffer t "clone"
+                                                   ,@(when-let ((depth (plist-get order :depth)))
+                                                       (list (format "--depth=%d" depth) "--no-single-branch"))
+                                                   ,(plist-get order :repo) ,repo))))
+                   ((zerop (call-process "git" nil buffer t "checkout"
+                                         (or (plist-get order :ref) "--"))))
+                   (emacs (concat invocation-directory invocation-name))
+                   ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
+                                         "--eval" "(byte-recompile-directory \".\" 0 'force)")))
+                   ((require 'elpaca))
+                   ((elpaca-generate-autoloads "elpaca" repo)))
+              (progn (message "%s" (buffer-string)) (kill-buffer buffer))
+            (error "%s" (with-current-buffer buffer (buffer-string))))
+        ((error) (warn "%s" err) (delete-directory repo 'recursive))))
+    (unless (require 'elpaca-autoloads nil t)
+      (require 'elpaca)
+      (elpaca-generate-autoloads "elpaca" repo)
+      (load "./elpaca-autoloads")))
+  (add-hook 'after-init-hook #'elpaca-process-queues)
+  (elpaca `(,@elpaca-order))
 
   ;; Install use-package support
   (elpaca elpaca-use-package
@@ -709,43 +718,43 @@ The following code blocks will tangle to the =early-init.el= file, which has con
 
 * CAPE
 #+begin_src emacs-lisp
-    ;; Add extensions
-    (use-package cape
-      :ghook
-      ('org-mode-hook #'gian/capf-setup-org)
-      ('emacs-lisp-mode-hook #'gian/capf-setup-elisp)
-      ('sly-mode-hook #'gian/capf-setup-common-lisp)
-      :init
+  ;; Add extensions
+  (use-package cape
+    :ghook
+    ('org-mode-hook #'gian/capf-setup-org)
+    ('emacs-lisp-mode-hook #'gian/capf-setup-elisp)
+    ('sly-mode-hook #'gian/capf-setup-common-lisp)
+    :init
 
-      (defun gian/capf-setup-org ()
-        (setq-local completion-at-point-functions
-                    `(,(cape-capf-super
-                        #'pcomplete-completions-at-point
-                        #'tempel-complete)
-                      cape-file
-                      citar-capf
-                      cape-dict)))
+    (defun gian/capf-setup-org ()
+      (setq-local completion-at-point-functions
+                  `(,(cape-capf-super
+                      #'pcomplete-completions-at-point
+                      #'tempel-complete)
+                    cape-file
+                    citar-capf
+                    cape-dict)))
 
-      (defun gian/ignore-elisp-keywords (cand)
-        (or (not (keywordp cand))
-            (eq (char-after (car completion-in-region--data)) ?:)))
+    (defun gian/ignore-elisp-keywords (cand)
+      (or (not (keywordp cand))
+          (eq (char-after (car completion-in-region--data)) ?:)))
 
-      (defun gian/capf-setup-elisp ()
-        (setq-local completion-at-point-functions
-                    `(,(cape-capf-super
-                        (cape-capf-predicate
-                         #'elisp-completion-at-point
-                         #'gian/ignore-elisp-keywords)
-                        #'tempel-complete
-                        #'cape-dabbrev)
-                      cape-file
-                      )
-                    cape-dabbrev-min-length 5))
+    (defun gian/capf-setup-elisp ()
+      (setq-local completion-at-point-functions
+                  `(,(cape-capf-super
+                      (cape-capf-predicate
+                       #'elisp-completion-at-point
+                       #'gian/ignore-elisp-keywords)
+                      #'tempel-complete
+                      #'cape-dabbrev)
+                    cape-file
+                    )
+                  cape-dabbrev-min-length 5))
 
-      (defun gian/capf-setup-common-lisp ()
-        (setq-local completion-at-point-functions '(cape-file tempel-complete sly-complete-symbol)))
+    (defun gian/capf-setup-common-lisp ()
+      (setq-local completion-at-point-functions '(cape-file tempel-complete sly-complete-symbol)))
 
-      )
+    )
 #+end_src
 
 
@@ -761,7 +770,7 @@ The following code blocks will tangle to the =early-init.el= file, which has con
       ;; Emacs client opens the dashboard
       (setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*")))
 
-      (setq dashboard-banner-logo-title "Hey... prendan la luz...")
+      (setq dashboard-banner-logo-title "Prami fa mi do")
       (setq dashboard-startup-banner 'logo)
 
       (setq dashboard-center-content t)
@@ -926,8 +935,13 @@ The best interface
     ;; Optional: Add tempel-collection.
     ;; The package is young and doesn't have comprehensive coverage.
     (use-package tempel-collection)
+  
 #+end_src
 
+* TEMPLATES AND EGLOT
+#+begin_src emacs-lisp
+  (use-package eglot-tempel)
+#+end_src
 * TREEMACS
 #+begin_src emacs-lisp
   (use-package treemacs
@@ -1080,6 +1094,11 @@ I'm using modus-themes, which come builtin with Emacs.
     :after citar embark
     :no-require
     :config (citar-embark-mode))
+#+end_src
+
+** Write emails
+#+begin_src emacs-lisp
+  (use-package org-mime)
 #+end_src
 
 ** Meow and Org Mode bindings
@@ -1259,6 +1278,15 @@ wgrep allows you to edit a grep buffer and apply those changes to the file buffe
   (use-package wgrep)
 #+end_src
 
+* HYDRA
+#+begin_src emacs-lisp
+  (use-package hydra)
+#+end_src
+
+* HTTP
+#+begin_src emacs-lisp
+  (use-package restclient)
+#+end_src
 * PROGRAMMING LANGUAGES
 First of all, we configure Eglot generally
 
@@ -1268,11 +1296,35 @@ First of all, we configure Eglot generally
 #+end_src
 
 ** Clojure
-Using CIDER, along with Lein
+It has the following external dependencies:
+
+- clj-kondo
+- clojure
+
+Keep an eye on cider-storm, it didn't work for me last time using ClojureStorm
 #+begin_src emacs-lisp
   (use-package cider
+    :config
+    (setq cider-enrich-classpath t)
+    (setq cider-font-lock-dynamically '(macro core function var))
     )
-#+end_src
+
+  ;; ===
+  (use-package inflections)
+  (use-package clj-refactor
+    :ghook ('clojure-mode-hook (lambda ()
+                                   (clj-refactor-mode 1)
+                                   (cljr-add-keybindings-with-prefix "C-c r"))))
+  ;; ===
+
+  (use-package cider-hydra
+    :ghook ('clojure-mode-hook #'cider-hydra-mode))
+
+  (use-package flycheck-clj-kondo
+    :ghook ('clojure-mode-hook (lambda ()
+                                 (require 'flycheck-clj-kondo)
+                                 (flycheck-mode 1))))
+  #+end_src
 
 ** Common Lisp
 Developing common-lisp with Sly
@@ -1304,6 +1356,53 @@ Developing common-lisp with Sly
       (sly-eval-async `(lisp-critic:critique-file ,(buffer-file-name)))))
  #+end_src
  
+** C#
+#+begin_src emacs-lisp
+  ;; project-find-function supporting both C# and F#:
+
+  (defun dotnet-mode/find-sln-or-fsproj (dir-or-file)
+    "Search for a solution or F# project file in any enclosing
+  folders relative to DIR-OR-FILE."
+    (dotnet-mode-search-upwards (rx (0+ nonl) (or ".fsproj" ".sln" ".csproj") eol)
+                                (file-name-directory dir-or-file)))
+
+  (defun dotnet-mode-search-upwards (regex dir)
+    (when dir
+      (or (car-safe (directory-files dir 'full regex))
+          (dotnet-mode-search-upwards regex (dotnet-mode-parent-dir dir)))))
+
+  (defun dotnet-mode-parent-dir (dir)
+    (let ((p (file-name-directory (directory-file-name dir))))
+      (unless (equal p dir)
+        p)))
+
+  ;; Make project.el aware of dotnet projects
+  (defun dotnet-mode-project-root (dir)
+    (when-let (project-file (dotnet-mode/find-sln-or-fsproj dir))
+      (cons 'dotnet (file-name-directory project-file))))
+
+  (cl-defmethod project-roots ((project (head dotnet)))
+    (list (cdr project)))
+
+  (add-hook 'project-find-functions #'dotnet-mode-project-root)
+
+  (use-package tree-sitter :ensure t)
+  (use-package tree-sitter-langs :ensure t)
+  (use-package tree-sitter-indent :ensure t)
+
+  (use-package csharp-mode
+    :ensure t
+    :config
+    (add-to-list 'auto-mode-alist '("\\.cs\\'" . csharp-tree-sitter-mode)))
+
+  (use-package eglot
+    :elpaca nil
+    :config
+        (add-to-list 'eglot-server-programs
+                     `(csharp-mode . ("/usr/bin/OmniSharp" "-lsp")))
+              (add-to-list 'eglot-server-programs
+                           `(csharp-tree-sitter-mode . ("/home/giancarlo/Vídeos/OmniSharp" "-lsp"))))
+  #+end_src
 ** Java
 #+begin_src emacs-lisp
   (use-package eglot
@@ -1315,9 +1414,21 @@ Developing common-lisp with Sly
 
   (use-package eglot-java)
 #+end_src
+
+** JavaScript
+#+begin_src emacs-lisp
+  (use-package typescript-mode)
+#+end_src
+
 ** PHP
 #+begin_src emacs-lisp
   (use-package php-mode)
+#+end_src
+** Python
+#+begin_src emacs-lisp
+  (use-package eglot
+    :elpaca nil
+    :ghook ('python-mode-hook 'eglot-ensure))
 #+end_src
 ** Haskell
 #+begin_src emacs-lisp
